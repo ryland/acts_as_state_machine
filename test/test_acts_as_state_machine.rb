@@ -512,6 +512,28 @@ class ActsAsStateMachineTest < TEST_CASE
     assert_equal 2, cs.size
   end
 
+  def test_find_all_in_state_with_array
+    Conversation.class_eval do
+      acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
+      state :needs_attention
+      state :read
+    end
+
+    cs = Conversation.find_in_state(:all, [:read, :needs_attention])
+    assert_equal 3, cs.size
+  end
+
+  def test_find_all_in_state
+    Conversation.class_eval do
+      acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
+      state :needs_attention
+      state :read
+    end
+
+    cs = Conversation.find_in_state(:all, :read)
+    assert_equal 2, cs.size
+  end
+
   def test_find_first_in_state
     Conversation.class_eval do
       acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
@@ -520,6 +542,17 @@ class ActsAsStateMachineTest < TEST_CASE
     end
 
     c = Conversation.find_in_state(:first, :read)
+    assert_equal conversations(:first).id, c.id
+  end
+
+  def test_find_first_in_state_with_array
+    Conversation.class_eval do
+      acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
+      state :needs_attention
+      state :read
+    end
+
+    c = Conversation.find_in_state(:first, [:read, :needs_attention])
     assert_equal conversations(:first).id, c.id
   end
 
@@ -560,6 +593,21 @@ class ActsAsStateMachineTest < TEST_CASE
     assert_equal cnt0, cnt
   end
 
+  def test_count_in_state_with_array
+    Conversation.class_eval do
+      acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
+      state :needs_attention
+      state :read
+    end
+
+    cnt0 = Conversation.count(:conditions => ['state_machine = ? OR state_machine = ?', 'read', 'needs_attention'])
+    cnt  = Conversation.count_in_state([:read, :needs_attention])
+
+    assert_equal cnt0, cnt
+  end
+
+
+
   def test_count_in_state_with_conditions
     Conversation.class_eval do
       acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
@@ -582,6 +630,18 @@ class ActsAsStateMachineTest < TEST_CASE
 
     assert_raises(InvalidState) do
       Conversation.find_in_state(:all, :dead)
+    end
+  end
+
+  def test_find_in_invalid_and_valid_states_raises_exception
+    Conversation.class_eval do
+      acts_as_state_machine :initial => :needs_attention, :column => "state_machine"
+      state :needs_attention
+      state :read
+    end
+
+    assert_raises(InvalidState) do
+      Conversation.find_in_state(:all, [:dead, :read])
     end
   end
 

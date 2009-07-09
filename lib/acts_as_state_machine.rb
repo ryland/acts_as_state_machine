@@ -236,6 +236,7 @@ module ScottBarron                   #:nodoc:
             find(number, *args)
           end
         end
+        alias :find_in_states  :find_in_state
 
         # Wraps ActiveRecord::Base.count to conveniently count all records in
         # a given state.  Options:
@@ -247,6 +248,7 @@ module ScottBarron                   #:nodoc:
             count(*args)
           end
         end
+        alias :count_in_states :count_in_state
 
         # Wraps ActiveRecord::Base.calculate to conveniently calculate all records in
         # a given state.  Options:
@@ -260,10 +262,13 @@ module ScottBarron                   #:nodoc:
         end
 
         protected
-        def with_state_scope(state)
-          raise InvalidState unless states.include?(state.to_sym)
+        def with_state_scope(statez)
+          statez = statez.kind_of?(Array) ? statez : [statez]
+          raise InvalidState unless (states & statez) == statez.uniq
 
-          with_scope :find => {:conditions => ["#{table_name}.#{state_column} = ?", state.to_s]} do
+          conditions = statez.collect{|s| "#{table_name}.#{state_column} = ?"}.join(" OR ")  
+
+          with_scope :find => {:conditions => [conditions, *statez.map(&:to_s)]} do
             yield if block_given?
           end
         end
