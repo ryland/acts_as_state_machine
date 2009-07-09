@@ -55,7 +55,10 @@ ActiveRecord::Schema.define(:version => 1) do
   end
 end
 
-class Test::Unit::TestCase
+TEST_CASE = ActiveSupport.const_defined?(:TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase
+
+class TEST_CASE
+  include ActiveRecord::TestFixtures unless const_defined?(:TestCase)
   self.fixture_path = File.dirname(__FILE__) + "/fixtures/"
   self.use_transactional_fixtures = true
   self.use_instantiated_fixtures  = false
@@ -98,7 +101,7 @@ class Conversation < ActiveRecord::Base
   end
 end
 
-class ActsAsStateMachineTest < Test::Unit::TestCase
+class ActsAsStateMachineTest < TEST_CASE
   include ScottBarron::Acts::StateMachine
   fixtures :conversations
 
