@@ -264,7 +264,7 @@ module ScottBarron                   #:nodoc:
         protected
         def with_state_scope(statez)
           statez = statez.kind_of?(Array) ? statez : [statez]
-          raise InvalidState unless (states & statez) == statez.uniq
+          raise InvalidState if statez.any?{|s| !states.include?(s)}
 
           conditions = statez.collect{|s| "#{table_name}.#{state_column} = ?"}.join(" OR ")  
 
